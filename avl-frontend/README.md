@@ -1,70 +1,196 @@
-# Getting Started with Create React App
+# AVL Tree Visualizer
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An interactive **AVL Tree Visualizer** built using **React (Frontend)** and **Java (Backend)**.  
+This project helps visualize how AVL Trees maintain balance using rotations.
 
-## Available Scripts
+The visualizer demonstrates **AVL insertion, balance factor calculation, and rotations (LL, RR, LR, RL)** with animated tree updates.
 
-In the project directory, you can run:
+---
 
-### `npm start`
+## Features
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+- AVL Tree insertion visualization
+- Balance factor display for every node
+- Automatic AVL balancing
+- Rotation detection:
+  - LL Rotation
+  - RR Rotation
+  - LR Rotation
+  - RL Rotation
+- Step-by-step balancing messages
+- Node highlighting
+- Path highlighting from root to inserted node
+- Rotation arrows
+- Smooth animation of nodes
+- Zoom and drag tree interaction
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+---
 
-### `npm test`
+## Tech Stack
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Frontend
+- React.js
+- react-d3-tree
+- CSS
 
-### `npm run build`
+### Backend
+- Java
+- Java HttpServer API
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Project Structure
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```
+avl-tree-visualizer
+│
+├── avl-backend
+│   ├── Server.java
+│   ├── AVLTree.java
+│   └── AVLNode.java
+│
+├── avl-frontend
+│   ├── public
+│   ├── src
+│   │   ├── App.js
+│   │   ├── App.css
+│   │   └── index.js
+│   └── package.json
+│
+└── README.md
+```
 
-### `npm run eject`
+---
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## How to Run the Project
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### 1. Clone the Repository
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```
+git clone https://github.com/your-username/avl-tree-visualizer.git
+cd avl-tree-visualizer
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+## Run Backend
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Navigate to backend folder:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```
+cd avl-backend
+```
 
-### Code Splitting
+Compile Java files:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```
+javac *.java
+```
 
-### Analyzing the Bundle Size
+Run the server:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+```
+java Server
+```
 
-### Making a Progressive Web App
+Backend will start at:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```
+http://localhost:9000
+```
 
-### Advanced Configuration
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## Run Frontend
 
-### Deployment
+Navigate to frontend folder:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```
+cd avl-frontend
+```
 
-### `npm run build` fails to minify
+Install dependencies:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```
+npm install
+```
+
+Start React app:
+
+```
+npm start
+```
+
+The application will run at:
+
+```
+http://localhost:3000
+```
+
+---
+
+## Example AVL Rotation
+
+### Insert Sequence
+
+```
+6 → 5 → 4
+```
+
+### Before Balancing
+
+```
+    6
+   /
+  5
+ /
+4
+```
+
+### After LL Rotation
+
+```
+   5
+  / \
+ 4   6
+```
+
+The visualizer shows this rotation automatically.
+
+---
+
+## Screenshots
+
+You can add screenshots here after running the project.
+
+Example:
+
+```
+![AVL Tree Visualization](screenshots/avl-demo.png)
+```
+
+---
+
+## Future Improvements
+
+- AVL deletion visualization
+- Search operation animation
+- Tree statistics panel
+- Operation history panel
+- Performance visualization
+- Interactive step-by-step algorithm explanation
+
+---
+
+## Author
+
+**Laxman Reddy Saddi**
+
+B.Tech – Computer Science Engineering (AI & ML)  
+ACE Engineering College
+
+---
+
+## License
+
+This project is open-source and available under the **MIT License**.
