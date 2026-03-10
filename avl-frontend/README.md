@@ -157,20 +157,6 @@ http://localhost:3000
 
 The visualizer shows this rotation automatically.
 
----
-
-## Screenshots
-
-You can add screenshots here after running the project.
-
-Example:
-
-```
-![AVL Tree Visualization](screenshots/avl-demo.png)
-```
-
----
-
 ## Future Improvements
 
 - AVL deletion visualization
