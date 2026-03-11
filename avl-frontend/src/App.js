@@ -31,9 +31,9 @@ function App() {
 
     setStepMessage("Inserting node...");
 
-    const res = await fetch("http://localhost:9000/insert",{
-      method:"POST",
-      body:value
+    const res = await fetch(process.env.REACT_APP_API_URL + "/insert", {
+      method: "POST",
+      body: value
     });
 
     const data = await res.json();
@@ -42,28 +42,28 @@ function App() {
 
     setPathNodes(data.path || []);
 
-    setTimeout(()=>{
+    setTimeout(() => {
       setStepMessage("Checking balance...");
-    },500);
+    }, 500);
 
-    setTimeout(()=>{
-      if(data.rotation){
+    setTimeout(() => {
+      if (data.rotation) {
         setStepMessage("Performing rotation: " + data.rotation);
       }
-    },1000);
+    }, 1000);
 
-    setTimeout(()=>{
+    setTimeout(() => {
 
       setTreeData(converted);
       setRotation(data.rotation);
 
       setHighlightNode(value);
 
-      setTimeout(()=>setHighlightNode(null),1200);
+      setTimeout(() => setHighlightNode(null), 1200);
 
       setStepMessage("Tree balanced");
 
-    },1500);
+    }, 1500);
 
     setValue("");
   };
@@ -122,7 +122,7 @@ function App() {
           fill={bfColor}
           textAnchor="middle"
           y="45"
-          fontSize="30"
+          fontSize="16"
           fontWeight="bold"
         >
           {bf}

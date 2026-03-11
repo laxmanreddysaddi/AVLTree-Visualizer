@@ -10,7 +10,7 @@ public class Server {
     public static void main(String[] args) throws Exception {
 
        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9000"));
-HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+       HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         server.createContext("/insert", (HttpExchange exchange) -> {
 
