@@ -31,7 +31,9 @@ function App() {
 
     setStepMessage("Inserting node...");
 
-    const res = await fetch(`${process.env.REACT_APP_API_URL}/insert`, {
+   const API = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
+
+const res = await fetch(`${API}/insert`, {
   method: "POST",
   headers: {
     "Content-Type": "text/plain"
