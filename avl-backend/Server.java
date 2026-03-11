@@ -7,120 +7,130 @@ import java.util.*;
 
 public class Server {
 
-    static Map<String, AVLTree> userTrees = new HashMap<>();
+    static AVLTree tree = new AVLTree();
 
     public static void main(String[] args) throws Exception {
 
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9000"));
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Root endpoint
+        // ROOT
         server.createContext("/", exchange -> {
 
             addCors(exchange);
 
-            if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
-                exchange.sendResponseHeaders(204, -1);
+            if(exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")){
+                exchange.sendResponseHeaders(204,-1);
                 return;
             }
 
-            String response = "AVL Tree Backend Running";
+            String response = "AVL Backend Running";
 
-            exchange.sendResponseHeaders(200, response.length());
+            exchange.sendResponseHeaders(200,response.length());
 
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
             os.close();
         });
 
-        // Insert endpoint
+        // RESET TREE
+        server.createContext("/reset", exchange -> {
+
+            addCors(exchange);
+
+            if(exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")){
+                exchange.sendResponseHeaders(204,-1);
+                return;
+            }
+
+            tree = new AVLTree();
+
+            String response = "Tree reset";
+
+            exchange.sendResponseHeaders(200,response.length());
+
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        });
+
+        // INSERT
         server.createContext("/insert", exchange -> {
 
             addCors(exchange);
 
-            if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
-                exchange.sendResponseHeaders(204, -1);
+            if(exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")){
+                exchange.sendResponseHeaders(204,-1);
                 return;
             }
 
-            if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader(exchange.getRequestBody())
+            );
 
-                BufferedReader br = new BufferedReader(
-                        new InputStreamReader(exchange.getRequestBody())
-                );
+            String value = br.readLine();
+            int val = Integer.parseInt(value);
 
-                String value = br.readLine();
-                int val = Integer.parseInt(value);
+            List<Integer> path = new ArrayList<>();
 
-                // user session id
-                String sessionId = exchange.getRemoteAddress().toString();
+            tree.insertValue(val);
 
-                AVLTree tree = userTrees.getOrDefault(sessionId, new AVLTree());
+            collectPath(tree.root,val,path);
 
-                List<Integer> path = new ArrayList<>();
+            String json =
+                    "{ \"tree\": "+treeToJson(tree.root)+
+                    ", \"rotation\": \""+tree.lastRotation+"\""+
+                    ", \"path\": "+path.toString()+
+                    "}";
 
-                tree.insertValue(val);
+            byte[] response = json.getBytes();
 
-                userTrees.put(sessionId, tree);
+            exchange.getResponseHeaders().add("Content-Type","application/json");
 
-                collectPath(tree.root, val, path);
+            exchange.sendResponseHeaders(200,response.length);
 
-                String json =
-                        "{ \"tree\": " + treeToJson(tree.root) +
-                        ", \"rotation\": \"" + tree.lastRotation + "\"" +
-                        ", \"path\": " + path.toString() +
-                        " }";
-
-                byte[] response = json.getBytes();
-
-                exchange.getResponseHeaders().add("Content-Type", "application/json");
-
-                exchange.sendResponseHeaders(200, response.length);
-
-                OutputStream os = exchange.getResponseBody();
-                os.write(response);
-                os.close();
-            }
+            OutputStream os = exchange.getResponseBody();
+            os.write(response);
+            os.close();
         });
 
         server.start();
-        System.out.println("Server running on port " + port);
+        System.out.println("Server running on port "+port);
     }
 
-    // CORS headers
-    static void addCors(HttpExchange exchange) {
+    static void addCors(HttpExchange exchange){
 
-        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
-        exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Origin","*");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Methods","GET,POST,OPTIONS");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Headers","Content-Type");
     }
 
-    static void collectPath(AVLNode node, int value, List<Integer> path) {
+    static void collectPath(AVLNode node,int value,List<Integer> path){
 
-        if (node == null) return;
+        if(node==null) return;
 
         path.add(node.value);
 
-        if (value < node.value)
-            collectPath(node.left, value, path);
-        else if (value > node.value)
-            collectPath(node.right, value, path);
+        if(value<node.value)
+            collectPath(node.left,value,path);
+        else if(value>node.value)
+            collectPath(node.right,value,path);
     }
 
     static String treeToJson(AVLNode node){
 
-        if(node == null)
+        if(node==null)
             return "null";
 
         int bf =
-                (node.left == null ? 0 : node.left.height) -
-                (node.right == null ? 0 : node.right.height);
+                (node.left==null?0:node.left.height) -
+                (node.right==null?0:node.right.height);
 
-        return "{ \"value\": " + node.value +
-                ", \"height\": " + node.height +
-                ", \"bf\": " + bf +
-                ", \"left\": " + treeToJson(node.left) +
-                ", \"right\": " + treeToJson(node.right) +
+        return "{ \"value\": "+node.value+
+                ", \"height\": "+node.height+
+                ", \"bf\": "+bf+
+                ", \"left\": "+treeToJson(node.left)+
+                ", \"right\": "+treeToJson(node.right)+
                 " }";
     }
 }
