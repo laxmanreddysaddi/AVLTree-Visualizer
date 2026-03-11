@@ -11,6 +11,8 @@ function App() {
   const [pathNodes, setPathNodes] = useState([]);
   const [stepMessage, setStepMessage] = useState("");
 
+  const API = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
+
   const convertTree = (node) => {
 
     if (!node) return null;
@@ -31,46 +33,72 @@ function App() {
 
     setStepMessage("Inserting node...");
 
-   const API = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
+    try {
 
-const res = await fetch(`${API}/insert`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "text/plain"
-  },
-  body: value
-});
+      const res = await fetch(API + "/insert", {
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain"
+        },
+        body: value
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    const converted = convertTree(data.tree);
+      const converted = convertTree(data.tree);
 
-    setPathNodes(data.path || []);
+      setPathNodes(data.path || []);
 
-    setTimeout(() => {
-      setStepMessage("Checking balance...");
-    }, 500);
+      setTimeout(() => {
+        setStepMessage("Checking balance...");
+      }, 500);
 
-    setTimeout(() => {
-      if (data.rotation) {
-        setStepMessage("Performing rotation: " + data.rotation);
-      }
-    }, 1000);
+      setTimeout(() => {
+        if (data.rotation) {
+          setStepMessage("Performing rotation: " + data.rotation);
+        }
+      }, 1000);
 
-    setTimeout(() => {
+      setTimeout(() => {
 
-      setTreeData(converted);
-      setRotation(data.rotation);
+        setTreeData(converted);
+        setRotation(data.rotation);
 
-      setHighlightNode(value);
+        setHighlightNode(value);
 
-      setTimeout(() => setHighlightNode(null), 1200);
+        setTimeout(() => setHighlightNode(null), 1200);
 
-      setStepMessage("Tree balanced");
+        setStepMessage("Tree balanced");
 
-    }, 1500);
+      }, 1500);
+
+    } catch (err) {
+
+      console.error(err);
+      setStepMessage("Backend connection error");
+
+    }
 
     setValue("");
+  };
+
+  const resetTree = async () => {
+
+    try {
+
+      await fetch(API + "/reset");
+
+      setTreeData(null);
+      setRotation("");
+      setPathNodes([]);
+      setStepMessage("Tree reset");
+
+    } catch (err) {
+
+      console.error(err);
+      setStepMessage("Reset failed");
+
+    }
   };
 
   const renderNode = ({ nodeDatum }) => {
@@ -154,6 +182,10 @@ const res = await fetch(`${API}/insert`, {
 
         <button onClick={insertNode}>
           Insert
+        </button>
+
+        <button onClick={resetTree}>
+          Reset Tree
         </button>
 
       </div>
