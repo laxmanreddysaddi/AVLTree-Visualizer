@@ -31,10 +31,13 @@ function App() {
 
     setStepMessage("Inserting node...");
 
-    const res = await fetch(process.env.REACT_APP_API_URL + "/insert", {
-      method: "POST",
-      body: value
-    });
+    const res = await fetch(`${process.env.REACT_APP_API_URL}/insert`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "text/plain"
+  },
+  body: value
+});
 
     const data = await res.json();
 
