@@ -13,7 +13,7 @@ public class Server {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9000"));
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Root endpoint
+        // Root endpoint (for wakeup)
         server.createContext("/", (HttpExchange exchange) -> {
 
             addCors(exchange);
@@ -28,6 +28,27 @@ public class Server {
 
         });
 
+        // Reset endpoint
+        server.createContext("/reset", (HttpExchange exchange) -> {
+
+            addCors(exchange);
+
+            if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
+                exchange.sendResponseHeaders(204, -1);
+                return;
+            }
+
+            tree = new AVLTree();   // clear the tree
+
+            String response = "Tree reset";
+
+            exchange.sendResponseHeaders(200, response.length());
+
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        });
+
         // Insert endpoint
         server.createContext("/insert", (HttpExchange exchange) -> {
 
@@ -38,48 +59,40 @@ public class Server {
                 return;
             }
 
-            if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
+            BufferedReader br = new BufferedReader(
+                    new InputStreamReader(exchange.getRequestBody())
+            );
 
-                BufferedReader br = new BufferedReader(
-                        new InputStreamReader(exchange.getRequestBody())
-                );
+            String value = br.readLine();
+            int val = Integer.parseInt(value);
 
-                String value = br.readLine();
-                int val = Integer.parseInt(value);
+            List<Integer> path = new ArrayList<>();
 
-                // Reset tree for each new request
-                tree = new AVLTree();
+            tree.insertValue(val);
 
-                List<Integer> path = new ArrayList<>();
+            collectPath(tree.root, val, path);
 
-                tree.insertValue(val);
+            String json =
+                    "{ \"tree\": " + treeToJson(tree.root) +
+                    ", \"rotation\": \"" + tree.lastRotation + "\"" +
+                    ", \"path\": " + path.toString() +
+                    " }";
 
-                collectPath(tree.root, val, path);
+            byte[] response = json.getBytes();
 
-                String json =
-                        "{ \"tree\": " + treeToJson(tree.root) +
-                        ", \"rotation\": \"" + tree.lastRotation + "\"" +
-                        ", \"path\": " + path.toString() +
-                        " }";
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
 
-                byte[] response = json.getBytes();
+            exchange.sendResponseHeaders(200, response.length);
 
-                exchange.getResponseHeaders().add("Content-Type", "application/json");
-
-                exchange.sendResponseHeaders(200, response.length);
-
-                OutputStream os = exchange.getResponseBody();
-                os.write(response);
-                os.close();
-            }
-
+            OutputStream os = exchange.getResponseBody();
+            os.write(response);
+            os.close();
         });
 
         server.start();
         System.out.println("Server running on port " + port);
     }
 
-    // CORS helper
     static void addCors(HttpExchange exchange) {
 
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
@@ -98,7 +111,6 @@ public class Server {
             collectPath(node.left, value, path);
         else if (value > node.value)
             collectPath(node.right, value, path);
-
     }
 
     static String treeToJson(AVLNode node){
