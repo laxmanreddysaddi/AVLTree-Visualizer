@@ -14,9 +14,15 @@ public class Server {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9000"));
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
+        // Root endpoint
         server.createContext("/", exchange -> {
 
             addCors(exchange);
+
+            if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
+                exchange.sendResponseHeaders(204, -1);
+                return;
+            }
 
             String response = "AVL Tree Backend Running";
 
@@ -25,9 +31,9 @@ public class Server {
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
             os.close();
-
         });
 
+        // Insert endpoint
         server.createContext("/insert", exchange -> {
 
             addCors(exchange);
@@ -37,53 +43,56 @@ public class Server {
                 return;
             }
 
-            BufferedReader br = new BufferedReader(
-                    new InputStreamReader(exchange.getRequestBody())
-            );
+            if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
 
-            String value = br.readLine();
-            int val = Integer.parseInt(value);
+                BufferedReader br = new BufferedReader(
+                        new InputStreamReader(exchange.getRequestBody())
+                );
 
-            // identify user
-            String sessionId = exchange.getRemoteAddress().toString();
+                String value = br.readLine();
+                int val = Integer.parseInt(value);
 
-            AVLTree tree = userTrees.getOrDefault(sessionId, new AVLTree());
+                // user session id
+                String sessionId = exchange.getRemoteAddress().toString();
 
-            List<Integer> path = new ArrayList<>();
+                AVLTree tree = userTrees.getOrDefault(sessionId, new AVLTree());
 
-            tree.insertValue(val);
+                List<Integer> path = new ArrayList<>();
 
-            userTrees.put(sessionId, tree);
+                tree.insertValue(val);
 
-            collectPath(tree.root, val, path);
+                userTrees.put(sessionId, tree);
 
-            String json =
-                    "{ \"tree\": " + treeToJson(tree.root) +
-                    ", \"rotation\": \"" + tree.lastRotation + "\"" +
-                    ", \"path\": " + path.toString() +
-                    " }";
+                collectPath(tree.root, val, path);
 
-            byte[] response = json.getBytes();
+                String json =
+                        "{ \"tree\": " + treeToJson(tree.root) +
+                        ", \"rotation\": \"" + tree.lastRotation + "\"" +
+                        ", \"path\": " + path.toString() +
+                        " }";
 
-            exchange.getResponseHeaders().add("Content-Type", "application/json");
+                byte[] response = json.getBytes();
 
-            exchange.sendResponseHeaders(200, response.length);
+                exchange.getResponseHeaders().add("Content-Type", "application/json");
 
-            OutputStream os = exchange.getResponseBody();
-            os.write(response);
-            os.close();
+                exchange.sendResponseHeaders(200, response.length);
+
+                OutputStream os = exchange.getResponseBody();
+                os.write(response);
+                os.close();
+            }
         });
 
         server.start();
         System.out.println("Server running on port " + port);
     }
 
+    // CORS headers
     static void addCors(HttpExchange exchange) {
 
-        exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-        exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
-
+        exchange.getResponseHeaders().set("Access-Control-Allow-Origin", "*");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+        exchange.getResponseHeaders().set("Access-Control-Allow-Headers", "Content-Type");
     }
 
     static void collectPath(AVLNode node, int value, List<Integer> path) {
