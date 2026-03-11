@@ -6,4 +6,6 @@ COPY . .
 
 RUN javac *.java
 
-CMD ["java","Server"]
+EXPOSE 8080
+
+CMD ["sh","-c","java Server"]
