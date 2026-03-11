@@ -13,6 +13,7 @@ public class Server {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9000"));
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
+        // Root endpoint
         server.createContext("/", (HttpExchange exchange) -> {
 
             addCors(exchange);
@@ -24,28 +25,10 @@ public class Server {
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
             os.close();
+
         });
 
-        server.createContext("/reset", (HttpExchange exchange) -> {
-
-            addCors(exchange);
-
-            if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
-                exchange.sendResponseHeaders(204, -1);
-                return;
-            }
-
-            tree = new AVLTree();
-
-            String response = "Tree reset";
-
-            exchange.sendResponseHeaders(200, response.length());
-
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
-        });
-
+        // Insert endpoint
         server.createContext("/insert", (HttpExchange exchange) -> {
 
             addCors(exchange);
@@ -55,44 +38,54 @@ public class Server {
                 return;
             }
 
-            BufferedReader br = new BufferedReader(
-                    new InputStreamReader(exchange.getRequestBody())
-            );
+            if (exchange.getRequestMethod().equalsIgnoreCase("POST")) {
 
-            String value = br.readLine();
-            int val = Integer.parseInt(value);
+                BufferedReader br = new BufferedReader(
+                        new InputStreamReader(exchange.getRequestBody())
+                );
 
-            List<Integer> path = new ArrayList<>();
+                String value = br.readLine();
+                int val = Integer.parseInt(value);
 
-            tree.insertValue(val);
+                // Reset tree for each new request
+                tree = new AVLTree();
 
-            collectPath(tree.root, val, path);
+                List<Integer> path = new ArrayList<>();
 
-            String json =
-                    "{ \"tree\": " + treeToJson(tree.root) +
-                    ", \"rotation\": \"" + tree.lastRotation + "\"" +
-                    ", \"path\": " + path.toString() +
-                    " }";
+                tree.insertValue(val);
 
-            byte[] response = json.getBytes();
+                collectPath(tree.root, val, path);
 
-            exchange.getResponseHeaders().add("Content-Type", "application/json");
+                String json =
+                        "{ \"tree\": " + treeToJson(tree.root) +
+                        ", \"rotation\": \"" + tree.lastRotation + "\"" +
+                        ", \"path\": " + path.toString() +
+                        " }";
 
-            exchange.sendResponseHeaders(200, response.length);
+                byte[] response = json.getBytes();
 
-            OutputStream os = exchange.getResponseBody();
-            os.write(response);
-            os.close();
+                exchange.getResponseHeaders().add("Content-Type", "application/json");
+
+                exchange.sendResponseHeaders(200, response.length);
+
+                OutputStream os = exchange.getResponseBody();
+                os.write(response);
+                os.close();
+            }
+
         });
 
         server.start();
         System.out.println("Server running on port " + port);
     }
 
-    static void addCors(HttpExchange exchange){
+    // CORS helper
+    static void addCors(HttpExchange exchange) {
+
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         exchange.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
     }
 
     static void collectPath(AVLNode node, int value, List<Integer> path) {
@@ -105,6 +98,7 @@ public class Server {
             collectPath(node.left, value, path);
         else if (value > node.value)
             collectPath(node.right, value, path);
+
     }
 
     static String treeToJson(AVLNode node){
