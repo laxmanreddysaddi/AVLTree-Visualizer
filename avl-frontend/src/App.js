@@ -10,22 +10,18 @@ function App() {
   const [highlightNode, setHighlightNode] = useState(null);
   const [pathNodes, setPathNodes] = useState([]);
   const [stepMessage, setStepMessage] = useState("");
-  const [loading, setLoading] = useState(true);
 
   const API = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
 
-  // Reset tree when page loads
   useEffect(() => {
 
-    const initialize = async () => {
+    const resetTree = async () => {
 
       try {
 
-        // Wake backend (Render free tier sleeps)
-        await fetch(API);
-
-        // Reset AVL tree
-        await fetch(API + "/reset");
+        await fetch(API + "/reset", {
+          method: "GET"
+        });
 
         setTreeData(null);
         setRotation("");
@@ -33,15 +29,13 @@ function App() {
 
       } catch (err) {
 
-        console.log("Backend wake/reset failed");
+        console.log("Backend reset failed");
 
       }
 
-      setLoading(false);
-
     };
 
-    initialize();
+    resetTree();
 
   }, [API]);
 
@@ -113,7 +107,6 @@ function App() {
     }
 
     setValue("");
-
   };
 
   const renderNode = ({ nodeDatum }) => {
@@ -185,12 +178,6 @@ function App() {
     <div className="container">
 
       <h1>AVL Tree Visualizer</h1>
-
-      {loading && (
-        <div className="step-box">
-          Connecting to backend...
-        </div>
-      )}
 
       <div className="controls">
 
