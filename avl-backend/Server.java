@@ -2,6 +2,7 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange;
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.util.*;
 
 public class Server {
 
@@ -9,8 +10,8 @@ public class Server {
 
     public static void main(String[] args) throws Exception {
 
-       int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9000"));
-       HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
+        int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9000"));
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
         server.createContext("/insert", (HttpExchange exchange) -> {
 
@@ -30,11 +31,19 @@ public class Server {
                 );
 
                 String value = br.readLine();
+                int val = Integer.parseInt(value);
 
-                tree.insertValue(Integer.parseInt(value));
+                List<Integer> path = new ArrayList<>();
 
-                String json = "{ \"tree\": " + treeToJson(tree.root) +
-                              ", \"rotation\": \"" + tree.lastRotation + "\" }";
+                tree.insertValue(val);
+
+                collectPath(tree.root, val, path);
+
+                String json =
+                        "{ \"tree\": " + treeToJson(tree.root) +
+                        ", \"rotation\": \"" + tree.lastRotation + "\"" +
+                        ", \"path\": " + path.toString() +
+                        " }";
 
                 byte[] response = json.getBytes();
 
@@ -47,7 +56,19 @@ public class Server {
         });
 
         server.start();
-        System.out.println("Server running on http://localhost:9000");
+        System.out.println("Server running on port " + port);
+    }
+
+    static void collectPath(AVLNode node, int value, List<Integer> path) {
+
+        if (node == null) return;
+
+        path.add(node.value);
+
+        if (value < node.value)
+            collectPath(node.left, value, path);
+        else if (value > node.value)
+            collectPath(node.right, value, path);
     }
 
     static String treeToJson(AVLNode node){
