@@ -1,20 +1,20 @@
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpExchange;
+
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.*;
 
 public class Server {
 
-    static AVLTree tree = new AVLTree();
+    static Map<String, AVLTree> userTrees = new HashMap<>();
 
     public static void main(String[] args) throws Exception {
 
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9000"));
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Root endpoint (for wakeup)
-        server.createContext("/", (HttpExchange exchange) -> {
+        server.createContext("/", exchange -> {
 
             addCors(exchange);
 
@@ -28,29 +28,7 @@ public class Server {
 
         });
 
-        // Reset endpoint
-        server.createContext("/reset", (HttpExchange exchange) -> {
-
-            addCors(exchange);
-
-            if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
-                exchange.sendResponseHeaders(204, -1);
-                return;
-            }
-
-            tree = new AVLTree();   // clear the tree
-
-            String response = "Tree reset";
-
-            exchange.sendResponseHeaders(200, response.length());
-
-            OutputStream os = exchange.getResponseBody();
-            os.write(response.getBytes());
-            os.close();
-        });
-
-        // Insert endpoint
-        server.createContext("/insert", (HttpExchange exchange) -> {
+        server.createContext("/insert", exchange -> {
 
             addCors(exchange);
 
@@ -66,9 +44,16 @@ public class Server {
             String value = br.readLine();
             int val = Integer.parseInt(value);
 
+            // identify user
+            String sessionId = exchange.getRemoteAddress().toString();
+
+            AVLTree tree = userTrees.getOrDefault(sessionId, new AVLTree());
+
             List<Integer> path = new ArrayList<>();
 
             tree.insertValue(val);
+
+            userTrees.put(sessionId, tree);
 
             collectPath(tree.root, val, path);
 
