@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Tree from "react-d3-tree";
 import "./App.css";
 
@@ -13,6 +13,23 @@ function App() {
 
   const API = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
 
+  useEffect(() => {
+
+    const resetTree = async () => {
+
+      try {
+        await fetch(API + "/reset");
+        setTreeData(null);
+      } catch (err) {
+        console.log("Reset failed");
+      }
+
+    };
+
+    resetTree();
+
+  }, []);
+
   const convertTree = (node) => {
 
     if (!node) return null;
@@ -25,6 +42,7 @@ function App() {
         convertTree(node.right)
       ].filter(Boolean)
     };
+
   };
 
   const insertNode = async () => {
@@ -82,25 +100,6 @@ function App() {
     setValue("");
   };
 
-  const resetTree = async () => {
-
-    try {
-
-      await fetch(API + "/reset");
-
-      setTreeData(null);
-      setRotation("");
-      setPathNodes([]);
-      setStepMessage("Tree reset");
-
-    } catch (err) {
-
-      console.error(err);
-      setStepMessage("Reset failed");
-
-    }
-  };
-
   const renderNode = ({ nodeDatum }) => {
 
     const bf = nodeDatum.attributes?.bf;
@@ -132,6 +131,7 @@ function App() {
     }
 
     return (
+
       <g>
 
         <circle
@@ -162,7 +162,9 @@ function App() {
         </text>
 
       </g>
+
     );
+
   };
 
   return(
@@ -182,10 +184,6 @@ function App() {
 
         <button onClick={insertNode}>
           Insert
-        </button>
-
-        <button onClick={resetTree}>
-          Reset Tree
         </button>
 
       </div>

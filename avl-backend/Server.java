@@ -13,7 +13,6 @@ public class Server {
         int port = Integer.parseInt(System.getenv().getOrDefault("PORT", "9000"));
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
-        // Root endpoint
         server.createContext("/", (HttpExchange exchange) -> {
 
             addCors(exchange);
@@ -27,8 +26,7 @@ public class Server {
             os.close();
         });
 
-        // Insert endpoint
-        server.createContext("/insert", (HttpExchange exchange) -> {
+        server.createContext("/reset", (HttpExchange exchange) -> {
 
             addCors(exchange);
 
@@ -37,8 +35,23 @@ public class Server {
                 return;
             }
 
-            if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
-                exchange.sendResponseHeaders(405, -1);
+            tree = new AVLTree();
+
+            String response = "Tree reset";
+
+            exchange.sendResponseHeaders(200, response.length());
+
+            OutputStream os = exchange.getResponseBody();
+            os.write(response.getBytes());
+            os.close();
+        });
+
+        server.createContext("/insert", (HttpExchange exchange) -> {
+
+            addCors(exchange);
+
+            if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
+                exchange.sendResponseHeaders(204, -1);
                 return;
             }
 
@@ -71,33 +84,11 @@ public class Server {
             os.write(response);
             os.close();
         });
-        //reset
-        server.createContext("/reset", (HttpExchange exchange) -> {
-
-    exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-    exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-
-    if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
-        exchange.sendResponseHeaders(204, -1);
-        return;
-    }
-
-    tree = new AVLTree();
-
-    String response = "Tree reset";
-
-    exchange.sendResponseHeaders(200, response.length());
-
-    OutputStream os = exchange.getResponseBody();
-    os.write(response.getBytes());
-    os.close();
-});
 
         server.start();
         System.out.println("Server running on port " + port);
     }
 
-    // GLOBAL CORS METHOD
     static void addCors(HttpExchange exchange){
         exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
