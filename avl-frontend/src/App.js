@@ -14,20 +14,26 @@ function App() {
 
   const API = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
 
+  // Reset tree when page loads
   useEffect(() => {
 
     const initialize = async () => {
 
       try {
 
-        await fetch(API);       // wake backend
-        await fetch(API + "/reset");  // reset tree
+        // Wake backend (Render free tier sleeps)
+        await fetch(API);
+
+        // Reset AVL tree
+        await fetch(API + "/reset");
 
         setTreeData(null);
+        setRotation("");
+        setPathNodes([]);
 
       } catch (err) {
 
-        console.log("Backend waking up...");
+        console.log("Backend wake/reset failed");
 
       }
 
@@ -37,7 +43,7 @@ function App() {
 
     initialize();
 
-  }, []);
+  }, [API]);
 
   const convertTree = (node) => {
 
@@ -107,6 +113,7 @@ function App() {
     }
 
     setValue("");
+
   };
 
   const renderNode = ({ nodeDatum }) => {
