@@ -71,6 +71,27 @@ public class Server {
             os.write(response);
             os.close();
         });
+        //reset
+        server.createContext("/reset", (HttpExchange exchange) -> {
+
+    exchange.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+    exchange.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+
+    if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
+        exchange.sendResponseHeaders(204, -1);
+        return;
+    }
+
+    tree = new AVLTree();
+
+    String response = "Tree reset";
+
+    exchange.sendResponseHeaders(200, response.length());
+
+    OutputStream os = exchange.getResponseBody();
+    os.write(response.getBytes());
+    os.close();
+});
 
         server.start();
         System.out.println("Server running on port " + port);
