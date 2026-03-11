@@ -62,6 +62,13 @@ avl-tree-visualizer
 
 ---
 
+## Project Documentation
+
+Detailed documentation:
+
+[AVL Tree Documentation](docs/AVLTree-document.pdf)
+
+
 ## How to Run the Project
 
 ### 1. Clone the Repository
